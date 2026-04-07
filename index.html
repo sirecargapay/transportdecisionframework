@@ -1,0 +1,1183 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Transport Intelligence Dashboard — RecargaPay</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0a0d14;
+  --surface: #111520;
+  --surface2: #161c2a;
+  --border: #1e2740;
+  --accent: #00e5a0;
+  --accent2: #00b87f;
+  --red: #ef4444;
+  --yellow: #f59e0b;
+  --blue: #3b82f6;
+  --text: #e2e8f0;
+  --muted: #64748b;
+  --muted2: #94a3b8;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 13px; min-height: 100vh; }
+.font-mono { font-family: 'DM Mono', monospace; }
+.font-syne { font-family: 'Syne', sans-serif; }
+
+/* HEADER */
+header { background: var(--surface); border-bottom: 1px solid var(--border); padding: 14px 28px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
+.logo { display: flex; align-items: center; gap: 12px; }
+.logo-dot { width: 8px; height: 8px; background: var(--accent); border-radius: 50%; box-shadow: 0 0 8px var(--accent); animation: pulse 2s infinite; }
+@keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:.4;} }
+.logo-text { font-family: 'Syne', sans-serif; font-size: 15px; font-weight: 700; letter-spacing: .5px; }
+.logo-sub { font-size: 10px; color: var(--muted); font-family: 'DM Mono', monospace; letter-spacing: 1px; text-transform: uppercase; }
+.header-badge { background: rgba(0,229,160,.08); border: 1px solid rgba(0,229,160,.2); color: var(--accent); padding: 4px 12px; border-radius: 20px; font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 1px; }
+
+/* TABS */
+nav { background: var(--surface); border-bottom: 1px solid var(--border); padding: 0 28px; display: flex; gap: 0; overflow-x: auto; }
+.tab { padding: 12px 20px; cursor: pointer; font-size: 12px; font-weight: 500; color: var(--muted); white-space: nowrap; border-bottom: 2px solid transparent; transition: all .2s; letter-spacing: .3px; }
+.tab:hover { color: var(--text); }
+.tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+.tab-icon { margin-right: 6px; }
+
+/* MAIN */
+main { padding: 24px 28px; max-width: 1800px; margin: 0 auto; }
+.tab-content { display: none; }
+.tab-content.active { display: block; animation: fadeIn .3s ease; }
+@keyframes fadeIn { from{opacity:0;transform:translateY(4px);} to{opacity:1;transform:none;} }
+
+/* KPI STRIP */
+.kpi-strip { display: grid; grid-template-columns: repeat(6, 1fr); gap: 14px; margin-bottom: 24px; }
+.kpi-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px; position: relative; overflow: hidden; }
+.kpi-card::before { content:''; position:absolute; top:0;left:0;right:0;height:2px; }
+.kpi-card.green::before { background: var(--accent); }
+.kpi-card.red::before { background: var(--red); }
+.kpi-card.blue::before { background: var(--blue); }
+.kpi-card.yellow::before { background: var(--yellow); }
+.kpi-label { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; font-family: 'DM Mono', monospace; margin-bottom: 8px; }
+.kpi-value { font-family: 'Syne', sans-serif; font-size: 22px; font-weight: 700; line-height: 1; }
+.kpi-value.red { color: var(--red); }
+.kpi-value.green { color: var(--accent); }
+.kpi-sub { font-size: 11px; color: var(--muted2); margin-top: 6px; font-family: 'DM Mono', monospace; }
+
+/* GRID LAYOUT */
+.grid-2 { display: grid; grid-template-columns: 1fr 380px; gap: 20px; }
+.grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; }
+
+/* PANELS */
+.panel { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+.panel-header { padding: 14px 18px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+.panel-title { font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 600; }
+.panel-body { padding: 18px; }
+
+/* TABLES */
+.table-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; }
+th { background: var(--surface2); color: var(--muted); font-size: 10px; text-transform: uppercase; letter-spacing: 1px; padding: 8px 12px; text-align: left; font-family: 'DM Mono', monospace; font-weight: 400; white-space: nowrap; border-bottom: 1px solid var(--border); cursor: pointer; user-select: none; }
+th:hover { color: var(--text); }
+th.sort-asc::after { content: ' ↑'; color: var(--accent); }
+th.sort-desc::after { content: ' ↓'; color: var(--accent); }
+td { padding: 8px 12px; border-bottom: 1px solid rgba(30,39,64,.5); font-family: 'DM Mono', monospace; font-size: 12px; white-space: nowrap; vertical-align: middle; }
+tr:hover td { background: rgba(255,255,255,.02); }
+tr:last-child td { border-bottom: none; }
+
+/* BADGES */
+.badge { display: inline-flex; align-items: center; padding: 2px 8px; border-radius: 4px; font-size: 10px; font-weight: 600; font-family: 'DM Mono', monospace; letter-spacing: .5px; white-space: nowrap; }
+.badge-a { background: rgba(0,229,160,.12); color: var(--accent); }
+.badge-b { background: rgba(59,130,246,.12); color: var(--blue); }
+.badge-c { background: rgba(245,158,11,.12); color: var(--yellow); }
+.badge-d { background: rgba(239,68,68,.12); color: var(--red); }
+.badge-green { background: rgba(0,229,160,.1); color: var(--accent); }
+.badge-red { background: rgba(239,68,68,.1); color: var(--red); }
+.badge-yellow { background: rgba(245,158,11,.1); color: var(--yellow); }
+.badge-blue { background: rgba(59,130,246,.1); color: var(--blue); }
+.badge-gray { background: rgba(100,116,139,.1); color: var(--muted2); }
+
+/* DC VALUE */
+.dc-pos { color: var(--accent); }
+.dc-neg { color: var(--red); }
+.dc-zero { color: var(--yellow); }
+
+/* PROGRESS BAR */
+.bar-wrap { display: flex; align-items: center; gap: 8px; }
+.bar-bg { flex: 1; height: 4px; background: var(--border); border-radius: 2px; min-width: 60px; }
+.bar-fill { height: 100%; border-radius: 2px; background: var(--accent); transition: width .3s; }
+.bar-fill.low { background: var(--red); }
+.bar-fill.mid { background: var(--yellow); }
+
+/* SEARCH */
+.search-bar { display: flex; gap: 10px; margin-bottom: 16px; align-items: center; }
+input[type=text] { background: var(--surface2); border: 1px solid var(--border); color: var(--text); padding: 8px 14px; border-radius: 6px; font-family: 'DM Mono', monospace; font-size: 12px; outline: none; width: 280px; }
+input[type=text]:focus { border-color: var(--accent); }
+select { background: var(--surface2); border: 1px solid var(--border); color: var(--text); padding: 8px 12px; border-radius: 6px; font-family: 'DM Mono', monospace; font-size: 12px; outline: none; cursor: pointer; }
+
+/* CHART */
+.mini-chart { width: 100%; overflow: hidden; }
+.sparkline { display: flex; align-items: flex-end; gap: 3px; height: 48px; }
+.spark-bar { flex: 1; border-radius: 2px 2px 0 0; min-width: 4px; transition: opacity .2s; }
+.spark-bar:hover { opacity: .7; }
+
+/* MATRIX */
+.matrix-grid { display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 16px; height: 520px; }
+.quadrant { border-radius: 10px; padding: 16px; overflow-y: auto; position: relative; }
+.q1 { background: rgba(0,229,160,.04); border: 1px solid rgba(0,229,160,.2); }
+.q2 { background: rgba(245,158,11,.04); border: 1px solid rgba(245,158,11,.2); }
+.q3 { background: rgba(59,130,246,.04); border: 1px solid rgba(59,130,246,.2); }
+.q4 { background: rgba(239,68,68,.04); border: 1px solid rgba(239,68,68,.2); }
+.q-label { font-family: 'Syne', sans-serif; font-size: 11px; font-weight: 700; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+.city-chip { background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 8px 10px; margin-bottom: 8px; }
+.city-chip-name { font-weight: 600; font-size: 12px; margin-bottom: 4px; }
+.city-chip-metrics { display: flex; gap: 10px; font-family: 'DM Mono', monospace; font-size: 10px; color: var(--muted2); }
+
+/* SCENARIOS */
+.scenario-card { background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; padding: 16px; margin-bottom: 14px; }
+.scenario-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+.scenario-name { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 14px; }
+
+/* SIMULATOR */
+.sim-panel { background: var(--surface2); border: 1px solid rgba(0,229,160,.2); border-radius: 10px; padding: 20px; margin-bottom: 20px; }
+.sim-title { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 15px; margin-bottom: 16px; color: var(--accent); }
+.sim-controls { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+.control-group { }
+.control-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; font-family: 'DM Mono', monospace; margin-bottom: 8px; }
+input[type=range] { width: 100%; accent-color: var(--accent); cursor: pointer; }
+.control-value { font-family: 'Syne', sans-serif; font-size: 20px; font-weight: 700; color: var(--accent); margin-top: 4px; }
+.toggle-row { display: flex; gap: 12px; align-items: center; margin-bottom: 8px; }
+.toggle { width: 36px; height: 20px; background: var(--border); border-radius: 10px; cursor: pointer; position: relative; transition: background .2s; }
+.toggle.on { background: var(--accent); }
+.toggle::after { content:''; position:absolute; top:3px;left:3px;width:14px;height:14px;border-radius:50%;background:#fff;transition:transform .2s; }
+.toggle.on::after { transform: translateX(16px); }
+.toggle-label { font-size: 12px; }
+
+/* INSIGHT CARDS */
+.insight { background: var(--surface2); border-left: 3px solid var(--accent); border-radius: 0 8px 8px 0; padding: 12px 14px; margin-bottom: 10px; }
+.insight.warn { border-color: var(--yellow); }
+.insight.danger { border-color: var(--red); }
+.insight.info { border-color: var(--blue); }
+.insight-title { font-weight: 600; font-size: 12px; margin-bottom: 4px; }
+.insight-body { font-size: 11px; color: var(--muted2); line-height: 1.5; }
+
+/* DONUT */
+.donut-wrap { position: relative; width: 140px; height: 140px; margin: 0 auto; }
+.donut-center { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); text-align: center; }
+.donut-num { font-family: 'Syne', sans-serif; font-size: 22px; font-weight: 800; }
+.donut-lbl { font-size: 10px; color: var(--muted); font-family: 'DM Mono', monospace; }
+
+/* LINE CHART */
+.chart-container { position: relative; height: 200px; width: 100%; }
+canvas { width: 100% !important; }
+
+/* COMP TABLE */
+.comp-icon { font-size: 14px; }
+
+/* RESPONSIVE ADJUSTMENTS */
+@media (max-width: 1400px) { .kpi-strip { grid-template-columns: repeat(3, 1fr); } }
+@media (max-width: 1100px) { .grid-2 { grid-template-columns: 1fr; } }
+
+/* TREND ARROWS */
+.trend-up { color: var(--red); } /* worse for DC */
+.trend-down { color: var(--accent); } /* better for DC */
+
+/* SECTION TITLE */
+.section-title { font-family: 'Syne', sans-serif; font-size: 16px; font-weight: 700; margin-bottom: 16px; display: flex; align-items: center; gap: 10px; }
+.section-title::after { content:''; flex:1; height:1px; background: var(--border); }
+
+/* LEGEND */
+.legend { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 12px; }
+.legend-item { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--muted2); }
+.legend-dot { width: 8px; height: 8px; border-radius: 2px; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="logo-dot"></div>
+    <div>
+      <div class="logo-text font-syne">Transport Intelligence</div>
+      <div class="logo-sub">RecargaPay — Decision Dashboard</div>
+    </div>
+  </div>
+  <div style="display:flex;gap:12px;align-items:center;">
+    <span style="font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);">Base: Mar/2026 · 35 cidades · 27m histórico</span>
+    <div class="header-badge">CONFIDENCIAL</div>
+  </div>
+</header>
+
+<nav>
+  <div class="tab active" onclick="showTab(0)"><span class="tab-icon">◈</span>Visão Geral</div>
+  <div class="tab" onclick="showTab(1)"><span class="tab-icon">⊞</span>Matriz de Decisão</div>
+  <div class="tab" onclick="showTab(2)"><span class="tab-icon">≡</span>Análise por Cidade</div>
+  <div class="tab" onclick="showTab(3)"><span class="tab-icon">◎</span>Cenários Taxa + Seguro</div>
+  <div class="tab" onclick="showTab(4)"><span class="tab-icon">⚔</span>Inteligência Competitiva</div>
+  <div class="tab" onclick="showTab(5)"><span class="tab-icon">⬡</span>Cross-sell & LTV</div>
+</nav>
+
+<main>
+
+<!-- TAB 0: VISÃO GERAL -->
+<div class="tab-content active" id="tab0">
+  <div class="kpi-strip">
+    <div class="kpi-card blue">
+      <div class="kpi-label">TPV Total Mar/26</div>
+      <div class="kpi-value font-syne">R$71,1M</div>
+      <div class="kpi-sub">+21% MoM · 2,07M pedidos</div>
+    </div>
+    <div class="kpi-card blue">
+      <div class="kpi-label">TPV Cartão Crédito</div>
+      <div class="kpi-value font-syne">R$33,9M</div>
+      <div class="kpi-sub">48% do TPV · +23% MoM</div>
+    </div>
+    <div class="kpi-card green">
+      <div class="kpi-label">Active Users</div>
+      <div class="kpi-value font-syne">556K</div>
+      <div class="kpi-sub">+6% MoM · 26,2K new users</div>
+    </div>
+    <div class="kpi-card red">
+      <div class="kpi-label">DC Consolidado</div>
+      <div class="kpi-value font-syne red">–R$101K</div>
+      <div class="kpi-sub">–0,14% do TPV · Fee = R$0</div>
+    </div>
+    <div class="kpi-card red">
+      <div class="kpi-label">Cidades Detratoras</div>
+      <div class="kpi-value font-syne red">23/35</div>
+      <div class="kpi-sub">Perda mensal: –R$220K</div>
+    </div>
+    <div class="kpi-card yellow">
+      <div class="kpi-label">Perda Acumulada</div>
+      <div class="kpi-value font-syne" style="color:var(--yellow);">–R$2,2M</div>
+      <div class="kpi-sub">Jul/25 → Mar/26 (9 meses)</div>
+    </div>
+  </div>
+
+  <div class="grid-2">
+    <!-- RANKING TABLE -->
+    <div class="panel">
+      <div class="panel-header">
+        <div class="panel-title">Ranking de Cidades — DC Mar/2026</div>
+        <div style="display:flex;gap:8px;">
+          <input type="text" id="searchOverview" placeholder="Buscar cidade..." oninput="filterOverview()" style="width:180px;">
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table id="overviewTable">
+          <thead>
+            <tr>
+              <th onclick="sortTable('overviewTable',0)">Cidade</th>
+              <th onclick="sortTable('overviewTable',1)">DC/Mês</th>
+              <th onclick="sortTable('overviewTable',2)">TPV</th>
+              <th>Share CC</th>
+              <th onclick="sortTable('overviewTable',4)">Active Users</th>
+              <th>Score</th>
+              <th>Recomendação</th>
+              <th>Exclusiv.</th>
+            </tr>
+          </thead>
+          <tbody id="overviewBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- RIGHT PANELS -->
+    <div style="display:flex;flex-direction:column;gap:16px;">
+      <!-- DC TREND CHART -->
+      <div class="panel">
+        <div class="panel-header"><div class="panel-title">DC Consolidado Jul/25–Mar/26</div></div>
+        <div class="panel-body">
+          <canvas id="dcChart" height="160"></canvas>
+        </div>
+      </div>
+
+      <!-- DONUT -->
+      <div class="panel">
+        <div class="panel-header"><div class="panel-title">Saúde do Portfólio</div></div>
+        <div class="panel-body">
+          <canvas id="healthDonut" height="180"></canvas>
+          <div class="legend" style="margin-top:12px;justify-content:center;">
+            <div class="legend-item"><div class="legend-dot" style="background:var(--accent)"></div>A — Saudável</div>
+            <div class="legend-item"><div class="legend-dot" style="background:var(--blue)"></div>B — Atenção</div>
+            <div class="legend-item"><div class="legend-dot" style="background:var(--yellow)"></div>C — Crítico</div>
+            <div class="legend-item"><div class="legend-dot" style="background:var(--red)"></div>D — Descontinuar</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- INSIGHTS -->
+      <div class="panel">
+        <div class="panel-header"><div class="panel-title">Alertas Automáticos</div></div>
+        <div class="panel-body" id="alertsPanel"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TAB 1: MATRIZ -->
+<div class="tab-content" id="tab1">
+  <div style="margin-bottom:16px;">
+    <div style="font-family:'Syne',sans-serif;font-size:13px;color:var(--muted2);line-height:1.6;">
+      Eixo Y: Potencial de receita incremental (taxa + seguro estimado) &nbsp;|&nbsp; Eixo X: Risco contratual/regulatório
+    </div>
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-bottom:4px;padding-left:40px;">
+    <div style="text-align:center;font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;letter-spacing:1px;">BAIXO RISCO</div>
+    <div style="text-align:center;font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;letter-spacing:1px;">ALTO RISCO</div>
+  </div>
+  <div style="display:grid;grid-template-columns:20px 1fr;gap:4px;">
+    <div style="display:flex;flex-direction:column;justify-content:space-between;align-items:center;padding:4px 0;">
+      <div style="font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;letter-spacing:1px;writing-mode:vertical-rl;transform:rotate(180deg);">ALTO POTENCIAL</div>
+      <div style="font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;letter-spacing:1px;writing-mode:vertical-rl;transform:rotate(180deg);">BAIXO POTENCIAL</div>
+    </div>
+    <div class="matrix-grid" id="matrixGrid"></div>
+  </div>
+</div>
+
+<!-- TAB 2: ANÁLISE POR CIDADE -->
+<div class="tab-content" id="tab2">
+  <div class="search-bar">
+    <input type="text" id="searchCity" placeholder="Buscar cidade ou cartão..." oninput="filterCityTable()">
+    <select id="filterDC" onchange="filterCityTable()">
+      <option value="">Todos os DCs</option>
+      <option value="pos">DC Positivo</option>
+      <option value="neg">DC Negativo</option>
+    </select>
+    <select id="filterExcl" onchange="filterCityTable()">
+      <option value="">Toda exclusividade</option>
+      <option value="sim">Com exclusividade</option>
+      <option value="nao">Sem exclusividade</option>
+    </select>
+    <select id="filterRec" onchange="filterCityTable()">
+      <option value="">Todas recomendações</option>
+      <option value="taxa">Cobrar Taxa</option>
+      <option value="seguro">Ativar Seguro</option>
+      <option value="taxa+seguro">Taxa + Seguro</option>
+      <option value="descontinuar">Descontinuar</option>
+      <option value="manter">Manter Grátis</option>
+    </select>
+    <span id="cityCount" style="font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);margin-left:auto;"></span>
+  </div>
+  <div class="panel">
+    <div class="table-wrap">
+      <table id="cityTable">
+        <thead>
+          <tr>
+            <th onclick="sortTable('cityTable',0)">Cidade</th>
+            <th onclick="sortTable('cityTable',1)">DC/Mês</th>
+            <th onclick="sortTable('cityTable',2)">TPV</th>
+            <th onclick="sortTable('cityTable',3)">TPV CC</th>
+            <th>Share CC</th>
+            <th onclick="sortTable('cityTable',5)">Active Users</th>
+            <th onclick="sortTable('cityTable',6)">New Users</th>
+            <th>Cross-sell %</th>
+            <th>Provedor</th>
+            <th>Custo Fixo</th>
+            <th>Custo Var.</th>
+            <th>Exclusiv.</th>
+            <th>Concorrente c/ Taxa</th>
+            <th>Barreira</th>
+            <th>Score</th>
+            <th>Recomendação</th>
+            <th>Prolab. Seguro/M</th>
+            <th>DC + Seguro</th>
+          </tr>
+        </thead>
+        <tbody id="cityBody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- TAB 3: CENÁRIOS -->
+<div class="tab-content" id="tab3">
+  <div class="sim-panel">
+    <div class="sim-title">⚡ Simulador de Alavancas</div>
+    <div class="sim-controls">
+      <div class="control-group">
+        <div class="control-label">Taxa de Conveniência / Recarga</div>
+        <input type="range" id="taxaSlider" min="0" max="3.99" step="0.10" value="1.99" oninput="updateSim()">
+        <div class="control-value" id="taxaVal">R$ 1,99</div>
+      </div>
+      <div class="control-group">
+        <div class="control-label">Churn Estimado por Taxa</div>
+        <input type="range" id="churnSlider" min="0" max="50" step="5" value="20" oninput="updateSim()">
+        <div class="control-value" id="churnVal">20%</div>
+      </div>
+    </div>
+    <div class="toggle-row">
+      <div class="toggle on" id="toggleSeg" onclick="toggleSeguro()"></div>
+      <span class="toggle-label">Incluir pro-labore do Seguro Perda de Renda (+R$1,63/assinante/mês)</span>
+    </div>
+    <div style="margin-top:16px;padding:12px;background:var(--surface);border-radius:8px;display:grid;grid-template-columns:repeat(4,1fr);gap:12px;" id="simSummary"></div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-header"><div class="panel-title">Impacto por Cidade com Alavancas Selecionadas</div></div>
+    <div class="table-wrap">
+      <table id="scenTable">
+        <thead>
+          <tr>
+            <th>Cidade</th>
+            <th>DC Atual</th>
+            <th>+ Taxa (líq.)</th>
+            <th>+ Seguro/M</th>
+            <th>DC Resultante</th>
+            <th>Variação</th>
+            <th>Status</th>
+            <th>Risco Contratual</th>
+            <th>Exclusiv.</th>
+          </tr>
+        </thead>
+        <tbody id="scenBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div style="margin-top:20px;">
+    <div class="section-title font-syne">Três Cenários Predefinidos</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;" id="predefinedScenarios"></div>
+  </div>
+</div>
+
+<!-- TAB 4: COMPETITIVO -->
+<div class="tab-content" id="tab4">
+  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px;" id="compCards"></div>
+  <div class="panel">
+    <div class="panel-header">
+      <div class="panel-title">Mapa Competitivo por Cidade</div>
+      <input type="text" id="searchComp" placeholder="Buscar..." oninput="filterCompTable()" style="width:200px;">
+    </div>
+    <div class="table-wrap">
+      <table id="compTable">
+        <thead>
+          <tr>
+            <th>Cidade</th>
+            <th>App Oficial</th>
+            <th>PicPay</th>
+            <th>Merc. Pago</th>
+            <th>Concorrente cobra taxa?</th>
+            <th>Barreira Regulatória</th>
+            <th>Janela de Taxa</th>
+            <th>RP é único player?</th>
+            <th>Oportunidade</th>
+          </tr>
+        </thead>
+        <tbody id="compBody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- TAB 5: CROSS-SELL & LTV -->
+<div class="tab-content" id="tab5">
+  <div class="kpi-strip" style="grid-template-columns:repeat(5,1fr);">
+    <div class="kpi-card yellow">
+      <div class="kpi-label">Cross-sell Médio</div>
+      <div class="kpi-value font-syne" style="color:var(--yellow);">2,4%</div>
+      <div class="kpi-sub">Todas cidades · Meta: 5%+</div>
+    </div>
+    <div class="kpi-card blue">
+      <div class="kpi-label">Total Loans Mar/26</div>
+      <div class="kpi-value font-syne">229</div>
+      <div class="kpi-sub">Empréstimos ativados</div>
+    </div>
+    <div class="kpi-card blue">
+      <div class="kpi-label">Total PixCC Mar/26</div>
+      <div class="kpi-value font-syne">258</div>
+      <div class="kpi-sub">Pix CC ativados</div>
+    </div>
+    <div class="kpi-card blue">
+      <div class="kpi-label">Total CCRP Mar/26</div>
+      <div class="kpi-value font-syne">148</div>
+      <div class="kpi-sub">Cartão RP ativados</div>
+    </div>
+    <div class="kpi-card green">
+      <div class="kpi-label">Prolab. Seguro/Ano</div>
+      <div class="kpi-value font-syne green">R$4,7M</div>
+      <div class="kpi-sub">Potencial total portfólio</div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-header"><div class="panel-title">Cross-sell & LTV por Cidade — Mar/2026</div></div>
+    <div class="table-wrap">
+      <table id="ltvTable">
+        <thead>
+          <tr>
+            <th onclick="sortTable('ltvTable',0)">Cidade</th>
+            <th onclick="sortTable('ltvTable',1)">New Users</th>
+            <th onclick="sortTable('ltvTable',2)">Loans</th>
+            <th onclick="sortTable('ltvTable',3)">PixCC</th>
+            <th onclick="sortTable('ltvTable',4)">CCRP</th>
+            <th onclick="sortTable('ltvTable',5)">Cross-sell %</th>
+            <th>Canal Dom.</th>
+            <th onclick="sortTable('ltvTable',7)">LTV 12m Est.</th>
+            <th onclick="sortTable('ltvTable',8)">Prolab. Seg./Ano</th>
+            <th onclick="sortTable('ltvTable',9)">LTV + Seguro</th>
+            <th>Potencial Cross</th>
+            <th>Tier Growth</th>
+          </tr>
+        </thead>
+        <tbody id="ltvBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div style="margin-top:20px;display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+    <div class="panel">
+      <div class="panel-header"><div class="panel-title">Cidades com Cross-sell abaixo de 5% (oportunidade)</div></div>
+      <div class="panel-body" id="crossOpportunity"></div>
+    </div>
+    <div class="panel">
+      <div class="panel-header"><div class="panel-title">Framework de Priorização — Growth</div></div>
+      <div class="panel-body">
+        <div class="insight"><div class="insight-title">Tier 1 — Ação Imediata</div><div class="insight-body">São Paulo, Vitória, São Luís, Recife, Curitiba — alto volume, alavancas claras disponíveis</div></div>
+        <div class="insight"><div class="insight-title">Tier 2 — Próximos 30 dias</div><div class="insight-body">Aracaju, Campinas, Maceió, SJC, Mogi — reversíveis com seguro ou taxa</div></div>
+        <div class="insight warn"><div class="insight-title">Tier 3 — Monitorar</div><div class="insight-body">Barueri, São Bernardo, Manaus, Blumenau, Salvador — equilibrio frágil</div></div>
+        <div class="insight danger"><div class="insight-title">Tier 4 — Avaliar descontinuação</div><div class="insight-body">Porto Alegre, Giro Rio, Taubaté, Porto Velho, Imperatriz — volume irrisório</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</main>
+
+<script>
+// ========== DATA ==========
+const CITIES = [
+  { id:"BENFACIL_BARUERI_ITAPEVI", alias:"Barueri e Itapevi", au:4526, orders:13132, tpv:579738.29, tpvCC:244303.76, dc:-5698.93, dcNU:-376.31, newUsers:354, google:40, organic:243, others:71, loans:2, pixCC:2, ccrp:3, shareCC:42, prolabMonth:2700.08, prolabYear:32401.00, dcPlusSeg:-2998.85 },
+  { id:"BILHETE_UNICO_CAMPINAS", alias:"Campinas", au:6764, orders:27679, tpv:824139.72, tpvCC:184760.92, dc:-4538.02, dcNU:-744.29, newUsers:2068, google:197, organic:1521, others:350, loans:18, pixCC:18, ccrp:25, shareCC:22, prolabMonth:8058.16, prolabYear:96697.96, dcPlusSeg:3520.14 },
+  { id:"BILHETE_UNICO_SAO_JOSE_DOS_CAMPOS", alias:"São José dos Campos", au:26639, orders:91929, tpv:3015970.90, tpvCC:790416.53, dc:-17912.90, dcNU:280.59, newUsers:1514, google:164, organic:1213, others:137, loans:8, pixCC:6, ccrp:4, shareCC:26, prolabMonth:14403.19, prolabYear:172838.26, dcPlusSeg:-3509.71 },
+  { id:"BILHETE_UNICO_SAO_LUIS", alias:"São Luís", au:38623, orders:137043, tpv:2855678.58, tpvCC:640956.08, dc:-12902.81, dcNU:176.97, newUsers:1410, google:153, organic:1128, others:129, loans:5, pixCC:8, ccrp:4, shareCC:22, prolabMonth:18830.39, prolabYear:225964.73, dcPlusSeg:5927.58 },
+  { id:"BILHETE_UNICO_SAO_PAULO", alias:"São Paulo", au:288320, orders:1188908, tpv:44116861.55, tpvCC:24361553.83, dc:87338.72, dcNU:4306.20, newUsers:9606, google:1258, organic:7540, others:808, loans:97, pixCC:138, ccrp:53, shareCC:55, prolabMonth:138164.58, prolabYear:1657975.01, dcPlusSeg:225503.30 },
+  { id:"BLUMOB_BLUMENAU", alias:"Blumenau", au:4232, orders:11991, tpv:398273.20, tpvCC:106002.46, dc:-2576.73, dcNU:-463.51, newUsers:962, google:67, organic:855, others:40, loans:2, pixCC:2, ccrp:3, shareCC:27, prolabMonth:4174.16, prolabYear:50089.96, dcPlusSeg:1597.43 },
+  { id:"BR_CARD_SANTOS_SP", alias:"Santos (BR Card)", au:594, orders:1614, tpv:90363.39, tpvCC:44967.27, dc:154.12, dcNU:10.16, newUsers:51, google:1, organic:44, others:6, loans:1, pixCC:2, ccrp:0, shareCC:50, prolabMonth:366.23, prolabYear:4394.79, dcPlusSeg:520.35 },
+  { id:"CABO_FRIO_SETRANSOL", alias:"Cabo Frio e Região", au:4105, orders:11276, tpv:415766.27, tpvCC:156107.31, dc:2320.50, dcNU:249.74, newUsers:237, google:18, organic:202, others:17, loans:0, pixCC:1, ccrp:2, shareCC:38, prolabMonth:2229.16, prolabYear:26749.88, dcPlusSeg:4549.66 },
+  { id:"CARTAO_BEM_LEGAL", alias:"Maceió", au:20402, orders:66485, tpv:1761273.57, tpvCC:477657.95, dc:-10306.19, dcNU:-216.01, newUsers:882, google:112, organic:680, others:90, loans:4, pixCC:7, ccrp:9, shareCC:27, prolabMonth:10305.49, prolabYear:123665.85, dcPlusSeg:-0.70 },
+  { id:"CARTAO_BOM_IMPERATRIZ_MA", alias:"Imperatriz", au:300, orders:817, tpv:18079.26, tpvCC:3095.30, dc:-83.71, dcNU:-4.51, newUsers:31, google:1, organic:26, others:4, loans:0, pixCC:0, ccrp:0, shareCC:17, prolabMonth:198.67, prolabYear:2384.04, dcPlusSeg:114.96 },
+  { id:"CARTAO_ELETRONICO_SETAP_MACAPA", alias:"Macapá", au:750, orders:1438, tpv:36776.81, tpvCC:7673.17, dc:509.02, dcNU:52.68, newUsers:92, google:7, organic:77, others:8, loans:0, pixCC:0, ccrp:0, shareCC:21, prolabMonth:534.58, prolabYear:6414.95, dcPlusSeg:1043.60 },
+  { id:"CARTAO_GV_VITORIA", alias:"Vitória", au:26124, orders:100274, tpv:2511489.46, tpvCC:1117798.71, dc:18614.91, dcNU:1282.73, newUsers:1027, google:159, organic:782, others:86, loans:10, pixCC:6, ccrp:2, shareCC:45, prolabMonth:12928.19, prolabYear:155138.33, dcPlusSeg:31543.10 },
+  { id:"CARTAO_RAPIDO_TAUBATE", alias:"Taubaté", au:121, orders:268, tpv:8597.67, tpvCC:5078.76, dc:-98.74, dcNU:-10.67, newUsers:9, google:2, organic:6, others:1, loans:0, pixCC:0, ccrp:0, shareCC:59, prolabMonth:70.97, prolabYear:851.67, dcPlusSeg:-27.77 },
+  { id:"CARTAO_TRANSPORTE_URBS", alias:"Curitiba", au:33845, orders:102349, tpv:4611327.68, tpvCC:1631058.89, dc:-37163.47, dcNU:-982.85, newUsers:2463, google:415, organic:1776, others:272, loans:10, pixCC:20, ccrp:27, shareCC:35, prolabMonth:19709.51, prolabYear:236514.12, dcPlusSeg:-17453.96 },
+  { id:"CARTAO_TRI_PORTO_ALEGRE", alias:"Porto Alegre", au:645, orders:1970, tpv:111621.91, tpvCC:73747.60, dc:-1615.48, dcNU:-165.62, newUsers:35, google:3, organic:30, others:2, loans:1, pixCC:0, ccrp:0, shareCC:66, prolabMonth:344.41, prolabYear:4132.86, dcPlusSeg:-1271.07 },
+  { id:"CCR_METRO_BAHIA_SALVADOR", alias:"Salvador", au:6177, orders:17274, tpv:634539.25, tpvCC:374910.69, dc:-1820.88, dcNU:134.26, newUsers:348, google:87, organic:211, others:50, loans:2, pixCC:8, ccrp:2, shareCC:59, prolabMonth:3331.78, prolabYear:39981.31, dcPlusSeg:1510.90 },
+  { id:"COM_VOCE_SOROCABA", alias:"Sorocaba", au:1318, orders:3853, tpv:157772.15, tpvCC:100290.74, dc:334.10, dcNU:141.76, newUsers:137, google:16, organic:87, others:34, loans:4, pixCC:2, ccrp:0, shareCC:64, prolabMonth:874.93, prolabYear:10499.19, dcPlusSeg:1209.03 },
+  { id:"CRICIUMA_CARD", alias:"Criciúma", au:4871, orders:14849, tpv:350793.13, tpvCC:128903.68, dc:1654.78, dcNU:218.14, newUsers:372, google:41, organic:289, others:42, loans:2, pixCC:3, ccrp:0, shareCC:37, prolabMonth:2882.42, prolabYear:34588.98, dcPlusSeg:4537.20 },
+  { id:"CT_SANTOS_PRAIA_GRANDE_SP", alias:"Santos/Praia Grande", au:199, orders:474, tpv:19836.36, tpvCC:8966.15, dc:87.86, dcNU:4.64, newUsers:14, google:1, organic:12, others:1, loans:0, pixCC:0, ccrp:0, shareCC:45, prolabMonth:114.63, prolabYear:1375.53, dcPlusSeg:202.49 },
+  { id:"GIRO_METRO_RIO", alias:"Rio de Janeiro (Giro)", au:9, orders:32, tpv:499.44, tpvCC:248.00, dc:-12.92, dcNU:-0.48, newUsers:2, google:0, organic:1, others:1, loans:0, pixCC:0, ccrp:0, shareCC:50, prolabMonth:8.76, prolabYear:105.09, dcPlusSeg:-4.16 },
+  { id:"ITAQUAQUECETUBA_PASSES", alias:"Itaquaquecetuba", au:1149, orders:3297, tpv:184514.77, tpvCC:79887.33, dc:-1944.51, dcNU:-89.12, newUsers:68, google:5, organic:55, others:8, loans:1, pixCC:1, ccrp:0, shareCC:43, prolabMonth:628.29, prolabYear:7539.53, dcPlusSeg:-1316.22 },
+  { id:"MAIS_ARACAJU", alias:"Aracaju", au:20432, orders:56104, tpv:1539519.63, tpvCC:429422.69, dc:-8405.61, dcNU:27.11, newUsers:1193, google:129, organic:967, others:97, loans:7, pixCC:9, ccrp:11, shareCC:28, prolabMonth:11130.23, prolabYear:133562.76, dcPlusSeg:2724.62 },
+  { id:"NOSSO_SAO_PAULO", alias:"Ribeirão Preto", au:927, orders:2784, tpv:98168.16, tpvCC:50657.37, dc:-1110.30, dcNU:0.55, newUsers:36, google:7, organic:23, others:6, loans:0, pixCC:3, ccrp:0, shareCC:52, prolabMonth:457.59, prolabYear:5491.14, dcPlusSeg:-652.71 },
+  { id:"ONBOARD_PORTO_VELHO", alias:"Porto Velho", au:362, orders:944, tpv:25048.49, tpvCC:12677.63, dc:-265.45, dcNU:-5.71, newUsers:13, google:2, organic:10, others:1, loans:0, pixCC:0, ccrp:0, shareCC:51, prolabMonth:175.93, prolabYear:2111.13, dcPlusSeg:-89.52 },
+  { id:"PASSAFACIL_MANAUS", alias:"Manaus", au:5160, orders:19027, tpv:587782.92, tpvCC:323322.85, dc:-8431.17, dcNU:-1470.45, newUsers:812, google:92, organic:548, others:172, loans:14, pixCC:10, ccrp:5, shareCC:55, prolabMonth:4145.93, prolabYear:49751.17, dcPlusSeg:-4285.24 },
+  { id:"PEGFACIL_MATO_GROSSO_DO_SUL", alias:"Campo Grande", au:870, orders:2234, tpv:62962.54, tpvCC:28788.50, dc:-641.59, dcNU:-66.67, newUsers:182, google:22, organic:134, others:26, loans:1, pixCC:2, ccrp:1, shareCC:46, prolabMonth:816.90, prolabYear:9802.80, dcPlusSeg:175.31 },
+  { id:"PRATI_PELOTAS", alias:"Pelotas", au:1021, orders:3429, tpv:138281.98, tpvCC:55261.99, dc:-1172.83, dcNU:-14.19, newUsers:48, google:10, organic:30, others:8, loans:0, pixCC:0, ccrp:0, shareCC:40, prolabMonth:525.82, prolabYear:6309.87, dcPlusSeg:-647.01 },
+  { id:"PRONTO_MOGI_DAS_CRUZES", alias:"Mogi das Cruzes", au:12619, orders:48017, tpv:1458627.86, tpvCC:363864.24, dc:-8399.98, dcNU:-313.17, newUsers:753, google:76, organic:594, others:83, loans:4, pixCC:0, ccrp:4, shareCC:25, prolabMonth:6916.46, prolabYear:82997.56, dcPlusSeg:-1483.52 },
+  { id:"QRCODE_METRO_RIO", alias:"Rio de Janeiro (QR)", au:81, orders:273, tpv:2156.70, tpvCC:837.40, dc:25.54, dcNU:7.62, newUsers:25, google:2, organic:23, others:0, loans:0, pixCC:0, ccrp:0, shareCC:39, prolabMonth:97.11, prolabYear:1165.36, dcPlusSeg:122.65 },
+  { id:"SBDOCAMPO_BEM_LEGAL", alias:"São Bernardo do Campo", au:4208, orders:11231, tpv:578183.28, tpvCC:228499.56, dc:-5080.28, dcNU:-458.75, newUsers:266, google:28, organic:211, others:27, loans:3, pixCC:0, ccrp:2, shareCC:40, prolabMonth:2345.35, prolabYear:28144.23, dcPlusSeg:-2734.93 },
+  { id:"SOU_DIADEMA_SAO_PAULO", alias:"Diadema", au:1539, orders:2924, tpv:140294.17, tpvCC:71501.63, dc:797.90, dcNU:53.34, newUsers:96, google:12, organic:70, others:14, loans:0, pixCC:0, ccrp:0, shareCC:51, prolabMonth:854.41, prolabYear:10252.94, dcPlusSeg:1652.31 },
+  { id:"SUPERPASSE_JTU", alias:"Jacareí Urbano", au:1507, orders:3718, tpv:157735.09, tpvCC:43944.68, dc:526.84, dcNU:28.97, newUsers:70, google:13, organic:46, others:11, loans:0, pixCC:1, ccrp:2, shareCC:28, prolabMonth:773.90, prolabYear:9286.78, dcPlusSeg:1300.74 },
+  { id:"TEM_CUIABA", alias:"Cuiabá", au:853, orders:2980, tpv:71996.09, tpvCC:25420.61, dc:686.02, dcNU:42.11, newUsers:102, google:11, organic:83, others:8, loans:0, pixCC:0, ccrp:0, shareCC:35, prolabMonth:601.11, prolabYear:7213.29, dcPlusSeg:1287.13 },
+  { id:"VALEVIAJ", alias:"Jacareí Interurbano", au:777, orders:1478, tpv:108623.74, tpvCC:46340.28, dc:-123.18, dcNU:17.74, newUsers:62, google:11, organic:39, others:12, loans:0, pixCC:0, ccrp:1, shareCC:43, prolabMonth:466.74, prolabYear:5600.93, dcPlusSeg:343.56 },
+  { id:"VEM_PERNAMBUCO", alias:"Recife", au:38324, orders:116366, tpv:3457129.01, tpvCC:1636267.47, dc:-35814.41, dcNU:-486.25, newUsers:823, google:132, organic:589, others:102, loans:8, pixCC:7, ccrp:5, shareCC:47, prolabMonth:17178.69, prolabYear:206144.26, dcPlusSeg:-18635.72 },
+];
+
+const PROVIDERS = {
+  "CARTAO_GV_VITORIA":{prov:"Tacom",fixo:0,var:0,excl:"Não"},
+  "CCR_METRO_BAHIA_SALVADOR":{prov:"Tacom",fixo:0,var:0,excl:"Não"},
+  "BILHETE_UNICO_SAO_PAULO":{prov:"SPTrans",fixo:0,var:0,excl:"Não"},
+  "BILHETE_UNICO_SAO_LUIS":{prov:"Prodata",fixo:0,var:0.11,excl:"Sim"},
+  "SOU_DIADEMA_SAO_PAULO":{prov:"Prodata",fixo:0,var:0.11,excl:"Não"},
+  "NOSSO_SAO_PAULO":{prov:"Prodata",fixo:0,var:0.11,excl:"Não"},
+  "PRATI_PELOTAS":{prov:"Prodata",fixo:0,var:0.11,excl:"Não"},
+  "CARTAO_BEM_LEGAL":{prov:"Prodata",fixo:0,var:0.11,excl:"Não"},
+  "SBDOCAMPO_BEM_LEGAL":{prov:"Prodata",fixo:0,var:0.11,excl:"Não"},
+  "CARTAO_TRI_PORTO_ALEGRE":{prov:"Prodata",fixo:0,var:0.11,excl:"Sim"},
+  "MAIS_ARACAJU":{prov:"Prodata",fixo:0,var:0.11,excl:"Sim"},
+  "CABO_FRIO_SETRANSOL":{prov:"Prodata",fixo:0,var:0.11,excl:"Sim"},
+  "VALEVIAJ":{prov:"Prodata",fixo:0,var:0.11,excl:"Não"},
+  "TEM_CUIABA":{prov:"Prodata",fixo:0,var:0.11,excl:"Não"},
+  "SUPERPASSE_JTU":{prov:"Prodata",fixo:0,var:0.11,excl:"Sim"},
+  "BENFACIL_BARUERI_ITAPEVI":{prov:"Prodata",fixo:0,var:0.11,excl:"Não"},
+  "PASSAFACIL_MANAUS":{prov:"Prodata",fixo:0,var:0.11,excl:"Sim"},
+  "CT_SANTOS_PRAIA_GRANDE_SP":{prov:"Prodata",fixo:0,var:0.11,excl:"Sim"},
+  "BR_CARD_SANTOS_SP":{prov:"Prodata",fixo:0,var:0.11,excl:"Sim"},
+  "BLUMOB_BLUMENAU":{prov:"Prodata",fixo:0,var:0.11,excl:"Sim"},
+  "ONBOARD_PORTO_VELHO":{prov:"Onboard",fixo:0,var:0,excl:"Não"},
+  "GIRO_METRO_RIO":{prov:"MetrôRio",fixo:0,var:0,excl:"Não"},
+  "QRCODE_METRO_RIO":{prov:"MetrôRio",fixo:0,var:0,excl:"Sim"},
+  "PEGFACIL_MATO_GROSSO_DO_SUL":{prov:"Guaicurus",fixo:0,var:0,excl:"Sim"},
+  "CARTAO_ELETRONICO_SETAP_MACAPA":{prov:"Empresa1",fixo:383,var:0,excl:"Sim"},
+  "CRICIUMA_CARD":{prov:"Empresa1",fixo:383,var:0,excl:"Sim"},
+  "ITAQUAQUECETUBA_PASSES":{prov:"Empresa1",fixo:383,var:0,excl:"Sim"},
+  "PRONTO_MOGI_DAS_CRUZES":{prov:"Empresa1",fixo:383,var:0,excl:"Sim"},
+  "CARTAO_BOM_IMPERATRIZ_MA":{prov:"Empresa1",fixo:383,var:0,excl:"Sim"},
+  "BILHETE_UNICO_SAO_JOSE_DOS_CAMPOS":{prov:"Dataprom",fixo:1489,var:0,excl:"Não"},
+  "CARTAO_TRANSPORTE_URBS":{prov:"Dataprom",fixo:5761,var:0,excl:"Não"},
+  "VEM_PERNAMBUCO":{prov:"Cittamobi",fixo:12000,var:0.16,excl:"Não"},
+  "COM_VOCE_SOROCABA":{prov:"Cittamobi",fixo:0,var:0,excl:"Não"},
+  "CARTAO_RAPIDO_TAUBATE":{prov:"Cittamobi",fixo:2000,var:0,excl:"Não"},
+  "BILHETE_UNICO_CAMPINAS":{prov:"Dataprom",fixo:0,var:0,excl:"Não"},
+};
+
+const COMPETITIVE = {
+  "BENFACIL_BARUERI_ITAPEVI":{appOficial:"✅ Benfácil (sem taxa)",picpay:"❌",mercadopago:"❌",concTaxa:"Não",barreira:"🟢 Sem barreira",janela:"Único player",unico:true,opp:"MÉDIA"},
+  "BILHETE_UNICO_CAMPINAS":{appOficial:"✅ Transurc Smart (sem taxa)",picpay:"❌",mercadopago:"❌",concTaxa:"Não",barreira:"🔴 EMDEC",janela:"App oficial gratuito",unico:false,opp:"BAIXA"},
+  "BILHETE_UNICO_SAO_JOSE_DOS_CAMPOS":{appOficial:"❌ Nenhum",picpay:"❌",mercadopago:"❌",concTaxa:"N/A",barreira:"🔴 Prefeitura",janela:"Nenhum concorrente digital",unico:true,opp:"ALTA — único player"},
+  "BILHETE_UNICO_SAO_LUIS":{appOficial:"❌ Nenhum",picpay:"❌",mercadopago:"❌",concTaxa:"N/A",barreira:"🔴 Prefeitura",janela:"Único player digital",unico:true,opp:"ALTA — sem concorrente"},
+  "BILHETE_UNICO_SAO_PAULO":{appOficial:"✅ Múltiplos (sem taxa)",picpay:"⚠️ Com taxa",mercadopago:"✅ Sem taxa",concTaxa:"Sim (PicPay)",barreira:"🔴 SPTrans + churn alto",janela:"Fechada — múltiplos gratuitos",unico:false,opp:"BAIXA"},
+  "BLUMOB_BLUMENAU":{appOficial:"❌ Nenhum",picpay:"❌",mercadopago:"❌",concTaxa:"N/A",barreira:"🔴 Prefeitura",janela:"Único player",unico:true,opp:"ALTA — com barreira"},
+  "BR_CARD_SANTOS_SP":{appOficial:"❌ Nenhum",picpay:"❌",mercadopago:"❌",concTaxa:"N/A",barreira:"🟡 Volume baixo",janela:"Único player",unico:true,opp:"BAIXA — volume irrisório"},
+  "CABO_FRIO_SETRANSOL":{appOficial:"❌ Nenhum",picpay:"❌",mercadopago:"❌",concTaxa:"N/A",barreira:"🔴 Operador",janela:"Único player",unico:true,opp:"MÉDIA — exclusividade"},
+  "CARTAO_BEM_LEGAL":{appOficial:"✅ App Vamu (sem taxa)",picpay:"⚠️ Ponto Certo taxa",mercadopago:"❌",concTaxa:"Parcial",barreira:"🟡 Risco churn",janela:"Estreita",unico:false,opp:"MÉDIA — app concorrente gratuito"},
+  "CARTAO_BOM_IMPERATRIZ_MA":{appOficial:"❌ Nenhum",picpay:"❌",mercadopago:"❌",concTaxa:"N/A",barreira:"🟢 Sem barreira",janela:"Único player",unico:true,opp:"BAIXA — volume irrisório"},
+  "CARTAO_ELETRONICO_SETAP_MACAPA":{appOficial:"❌ Nenhum (Pix only)",picpay:"❌",mercadopago:"❌",concTaxa:"N/A",barreira:"🟢 Sem barreira",janela:"Único player CC",unico:true,opp:"MÉDIA — exclusividade contratual"},
+  "CARTAO_GV_VITORIA":{appOficial:"❌ GVBus Pay (Pix only)",picpay:"⚠️ Até 4,99%",mercadopago:"❌",concTaxa:"Sim — PicPay cobra até 4,99%",barreira:"🟢 Sem barreira",janela:"✅ ABERTA — PicPay cobra",unico:false,opp:"ALTA — janela de taxa clara"},
+  "CARTAO_RAPIDO_TAUBATE":{appOficial:"❌ Nenhum",picpay:"⚠️ Com taxa",mercadopago:"❌",concTaxa:"Sim — PicPay cobra taxa",barreira:"🟢 Sem barreira",janela:"✅ ABERTA — PicPay cobra",unico:false,opp:"BAIXA — volume irrisório"},
+  "CARTAO_TRANSPORTE_URBS":{appOficial:"❌ Nenhum (site boleto only)",picpay:"❌",mercadopago:"❌",concTaxa:"Sim — Cliqx R$3–R$10",barreira:"🟢 Sem barreira",janela:"✅ ABERTA — Cliqx cobra R$3–R$10",unico:false,opp:"ALTA — janela competitiva clara"},
+  "CARTAO_TRI_PORTO_ALEGRE":{appOficial:"✅ App TRI (sem taxa)",picpay:"❌",mercadopago:"❌",concTaxa:"Não",barreira:"🔴 Operador ATP",janela:"App TRI gratuito",unico:false,opp:"BAIXA — app oficial gratuito + exclusividade"},
+  "CCR_METRO_BAHIA_SALVADOR":{appOficial:"✅ KIM+ / BB (sem taxa)",picpay:"⚠️ Com taxa",mercadopago:"❌",concTaxa:"Sim (PicPay)",barreira:"🟡 Risco churn KIM+",janela:"Estreita",unico:false,opp:"BAIXA — KIM+ gratuito credenciado"},
+  "COM_VOCE_SOROCABA":{appOficial:"❌ Nenhum (WhatsApp Pix)",picpay:"⚠️ Com taxa",mercadopago:"❌",concTaxa:"Sim — PicPay cobra",barreira:"🟢 Sem barreira",janela:"✅ ABERTA — PicPay cobra",unico:false,opp:"MÉDIA — PicPay cobra, volume moderado"},
+  "CRICIUMA_CARD":{appOficial:"❌ Nenhum",picpay:"❌",mercadopago:"❌",concTaxa:"N/A",barreira:"🟢 Sem barreira",janela:"Único player digital CC",unico:true,opp:"ALTA — único player, sem barreira"},
+  "CT_SANTOS_PRAIA_GRANDE_SP":{appOficial:"❌ Nenhum (Pix only)",picpay:"❌",mercadopago:"❌",concTaxa:"N/A",barreira:"🟡 Volume baixo",janela:"Único player",unico:true,opp:"BAIXA — volume irrisório"},
+  "GIRO_METRO_RIO":{appOficial:"✅ App MetrôRio (sem taxa)",picpay:"❌",mercadopago:"❌",concTaxa:"Não",barreira:"🟡 Volume baixo",janela:"App oficial gratuito",unico:false,opp:"IRRELEVANTE — 9 usuários"},
+  "ITAQUAQUECETUBA_PASSES":{appOficial:"❌ Nenhum",picpay:"❌",mercadopago:"❌",concTaxa:"N/A",barreira:"🔴 Risco operador",janela:"Único player",unico:true,opp:"BAIXA — exclusividade + barreira"},
+  "MAIS_ARACAJU":{appOficial:"❌ WhatsApp (Pix only)",picpay:"❌",mercadopago:"❌",concTaxa:"N/A",barreira:"🔴 MP intervém em taxa",janela:"Bloqueada — MP proíbe taxa",unico:true,opp:"NULA — MP veta qualquer taxa"},
+  "NOSSO_SAO_PAULO":{appOficial:"⚠️ App NOSSO (a confirmar)",picpay:"⚠️ Com taxa",mercadopago:"❌",concTaxa:"Sim — PicPay cobra",barreira:"🟢 Sem barreira",janela:"✅ ABERTA — PicPay cobra",unico:false,opp:"BAIXA — volume irrisório"},
+  "ONBOARD_PORTO_VELHO":{appOficial:"✅ App Bipay (sem taxa)",picpay:"❌",mercadopago:"❌",concTaxa:"Não",barreira:"🔴 Prefeitura",janela:"App oficial gratuito",unico:false,opp:"NULA — Bipay oficial gratuito"},
+  "PASSAFACIL_MANAUS":{appOficial:"✅ Cadê Meu Ônibus (sem taxa)",picpay:"❌",mercadopago:"❌",concTaxa:"Não",barreira:"🟡 Risco churn",janela:"App oficial gratuito",unico:false,opp:"BAIXA — app concorrente gratuito"},
+  "PEGFACIL_MATO_GROSSO_DO_SUL":{appOficial:"❌ Nenhum",picpay:"❌",mercadopago:"❌",concTaxa:"N/A",barreira:"🟢 Sem barreira",janela:"Único player digital CC",unico:true,opp:"ALTA — único player, exclusividade"},
+  "PRATI_PELOTAS":{appOficial:"❌ Nenhum",picpay:"⚠️ Com taxa",mercadopago:"❌",concTaxa:"Sim — PicPay cobra",barreira:"🟢 Sem barreira",janela:"✅ ABERTA — PicPay cobra",unico:false,opp:"BAIXA — volume irrisório"},
+  "PRONTO_MOGI_DAS_CRUZES":{appOficial:"❌ Nenhum",picpay:"❌",mercadopago:"❌",concTaxa:"N/A",barreira:"🔴 Prefeitura",janela:"Único player",unico:true,opp:"MÉDIA — único player + barreira prefeitura"},
+  "QRCODE_METRO_RIO":{appOficial:"✅ Riocard Mais (Pix) / bilheterias",picpay:"❌",mercadopago:"❌",concTaxa:"Não",barreira:"🟡 Volume baixo",janela:"Presencial gratuito",unico:false,opp:"IRRELEVANTE — 81 usuários"},
+  "SBDOCAMPO_BEM_LEGAL":{appOficial:"❌ WhatsApp (Pix only)",picpay:"❌",mercadopago:"❌",concTaxa:"N/A",barreira:"🔴 Operador",janela:"Único player digital CC",unico:true,opp:"MÉDIA — único player"},
+  "SOU_DIADEMA_SAO_PAULO":{appOficial:"❌ Nenhum",picpay:"⚠️ Com taxa",mercadopago:"❌",concTaxa:"Sim — PicPay cobra",barreira:"🟢 Sem barreira",janela:"✅ ABERTA — PicPay cobra",unico:false,opp:"BAIXA — volume irrisório"},
+  "SUPERPASSE_JTU":{appOficial:"❌ Nenhum",picpay:"❌",mercadopago:"❌",concTaxa:"N/A",barreira:"🔴 Prefeitura",janela:"Único player",unico:true,opp:"BAIXA — exclusividade + barreira"},
+  "TEM_CUIABA":{appOficial:"✅ App MTU (sem taxa)",picpay:"❌",mercadopago:"❌",concTaxa:"Não",barreira:"🔴 Prefeitura",janela:"App oficial gratuito",unico:false,opp:"BAIXA — app oficial gratuito"},
+  "VALEVIAJ":{appOficial:"❌ Nenhum",picpay:"❌",mercadopago:"❌",concTaxa:"N/A",barreira:"🔴 Prefeitura",janela:"Único player",unico:true,opp:"BAIXA — volume baixo + barreira"},
+  "VEM_PERNAMBUCO":{appOficial:"✅ App VEM (sem taxa!)",picpay:"⚠️ Ponto Certo taxa",mercadopago:"❌",concTaxa:"Não (App VEM gratuito)",barreira:"🟡 Risco churn App VEM",janela:"Fechada — App VEM gratuito compete",unico:false,opp:"NULA — App oficial sem taxa gratuito"},
+};
+
+const PNL_LABELS = ['Jul/25','Ago/25','Set/25','Out/25','Nov/25','Dez/25','Jan/26','Fev/26','Mar/26'];
+const PNL_DC = [-606745,-431695,-386937,-324813,-99038,-68816,-57432,-145081,-100563];
+const PNL_REV = [871538,920735,941917,944022,851110,737194,901934,837849,918167];
+const PNL_COSTS = [1478283,1352430,1328855,1268835,950147,806010,959366,982931,1018730];
+
+// ========== HELPERS ==========
+function fmtBRL(v) {
+  if(v===undefined||v===null) return '—';
+  const abs = Math.abs(v);
+  let s;
+  if(abs>=1e6) s='R$'+(v/1e6).toFixed(1)+'M';
+  else if(abs>=1e3) s='R$'+(v/1e3).toFixed(1)+'K';
+  else s='R$'+v.toFixed(0);
+  return v<0?s.replace('R$','–R$'):s;
+}
+function fmtNum(v){return new Intl.NumberFormat('pt-BR').format(Math.round(v));}
+function dcClass(v){return v>0?'dc-pos':v<-100?'dc-neg':'dc-zero';}
+
+function getScore(c){
+  const p=PROVIDERS[c.id]||{fixo:0,var:0,excl:"Não"};
+  const comp=COMPETITIVE[c.id]||{concTaxa:"N/A",barreira:"🟢"};
+  const hasBarreira=comp.barreira.includes('🔴');
+  const hasExcl=p.excl==='Sim';
+  const dcPos=c.dc>0;
+  const reversible=c.dcPlusSeg>0;
+  const bigFixed=p.fixo>=2000;
+  if(dcPos&&c.shareCC>=40&&!hasExcl)return'A';
+  if(!dcPos&&(reversible)&&!hasBarreira)return'B';
+  if(!dcPos&&bigFixed&&(hasExcl||hasBarreira))return'C';
+  if(!dcPos&&hasExcl&&hasBarreira)return'D';
+  if(dcPos)return'A';
+  if(reversible)return'B';
+  if(hasBarreira||hasExcl)return'C';
+  return'B';
+}
+
+function getRecommendation(c){
+  const p=PROVIDERS[c.id]||{fixo:0,var:0,excl:"Não"};
+  const comp=COMPETITIVE[c.id]||{concTaxa:"N/A",barreira:"🟢",unico:false};
+  const hasBarreira=comp.barreira.includes('🔴');
+  const hasExcl=p.excl==='Sim';
+  const hasTaxaWindow=comp.janela&&comp.janela.includes('ABERTA');
+  const reversibleWithSeg=c.dcPlusSeg>0&&c.dc<0;
+  const bigLoss=c.dc<-5000;
+  const tinyVolume=c.au<200;
+  
+  if(tinyVolume&&c.dc<0)return'DESCONTINUAR';
+  if(hasTaxaWindow&&!hasBarreira&&!hasExcl&&reversibleWithSeg)return'TAXA + SEGURO';
+  if(hasTaxaWindow&&!hasBarreira&&!hasExcl)return'COBRAR TAXA';
+  if(reversibleWithSeg&&!hasTaxaWindow)return'ATIVAR SEGURO';
+  if(hasBarreira&&hasExcl&&c.dc<-2000)return'DESCONTINUAR';
+  if(hasBarreira||comp.opp==='NULA')return'MANTER GRÁTIS';
+  if(c.dc<-500&&!hasTaxaWindow&&!reversibleWithSeg)return'AVALIAR';
+  if(c.dc>0)return'MANTER';
+  return'AVALIAR';
+}
+
+function recBadge(rec){
+  const map={
+    'COBRAR TAXA':'badge-green','TAXA + SEGURO':'badge-green',
+    'ATIVAR SEGURO':'badge-blue','AVALIAR':'badge-yellow',
+    'MANTER GRÁTIS':'badge-gray','MANTER':'badge-gray',
+    'DESCONTINUAR':'badge-red'
+  };
+  return `<span class="badge ${map[rec]||'badge-gray'}">${rec}</span>`;
+}
+function scoreBadge(s){return `<span class="badge badge-${s.toLowerCase()}">${s}</span>`;}
+
+// ========== TAB NAVIGATION ==========
+function showTab(i){
+  document.querySelectorAll('.tab').forEach((t,j)=>t.classList.toggle('active',i===j));
+  document.querySelectorAll('.tab-content').forEach((c,j)=>c.classList.toggle('active',i===j));
+}
+
+// ========== TABLE SORT ==========
+let sortStates={};
+function sortTable(tableId,col){
+  const tbl=document.getElementById(tableId);
+  const tbody=tbl.querySelector('tbody');
+  const rows=Array.from(tbody.querySelectorAll('tr'));
+  const key=tableId+col;
+  sortStates[key]=(sortStates[key]||0)===1?-1:1;
+  const dir=sortStates[key];
+  tbl.querySelectorAll('th').forEach(th=>{th.classList.remove('sort-asc','sort-desc');});
+  tbl.querySelectorAll('th')[col].classList.add(dir===1?'sort-asc':'sort-desc');
+  rows.sort((a,b)=>{
+    const av=a.cells[col]?a.cells[col].dataset.val||a.cells[col].textContent:'';
+    const bv=b.cells[col]?b.cells[col].dataset.val||b.cells[col].textContent:'';
+    const an=parseFloat(av),bn=parseFloat(bv);
+    if(!isNaN(an)&&!isNaN(bn))return(an-bn)*dir;
+    return av.localeCompare(bv)*dir;
+  });
+  rows.forEach(r=>tbody.appendChild(r));
+}
+
+// ========== OVERVIEW TABLE ==========
+function buildOverview(){
+  const sorted=[...CITIES].sort((a,b)=>a.dc-b.dc);
+  const tb=document.getElementById('overviewBody');
+  tb.innerHTML=sorted.map(c=>{
+    const score=getScore(c);
+    const rec=getRecommendation(c);
+    const p=PROVIDERS[c.id]||{excl:"?"};
+    const pct=Math.min(100,c.shareCC);
+    const barColor=pct>=50?'':(pct>=30?'mid':'low');
+    return `<tr>
+      <td data-val="${c.alias}"><strong>${c.alias}</strong><br><span style="color:var(--muted);font-size:10px;">${c.id.split('_').slice(-1)[0]}</span></td>
+      <td data-val="${c.dc}" class="${dcClass(c.dc)}">${fmtBRL(c.dc)}</td>
+      <td data-val="${c.tpv}">${fmtBRL(c.tpv)}</td>
+      <td>
+        <div class="bar-wrap">
+          <div class="bar-bg"><div class="bar-fill ${pct<30?'low':pct<50?'mid':''}" style="width:${pct}%"></div></div>
+          <span style="font-size:10px;color:var(--muted2);min-width:28px;">${c.shareCC}%</span>
+        </div>
+      </td>
+      <td data-val="${c.au}">${fmtNum(c.au)}</td>
+      <td>${scoreBadge(score)}</td>
+      <td>${recBadge(rec)}</td>
+      <td><span class="badge ${p.excl==='Sim'?'badge-yellow':'badge-gray'}">${p.excl||'?'}</span></td>
+    </tr>`;
+  }).join('');
+}
+
+function filterOverview(){
+  const q=document.getElementById('searchOverview').value.toLowerCase();
+  document.querySelectorAll('#overviewBody tr').forEach(r=>{
+    r.style.display=r.textContent.toLowerCase().includes(q)?'':'none';
+  });
+}
+
+// ========== CITY TABLE ==========
+function buildCityTable(){
+  const tb=document.getElementById('cityBody');
+  const sorted=[...CITIES].sort((a,b)=>a.dc-b.dc);
+  tb.innerHTML=sorted.map(c=>{
+    const score=getScore(c);
+    const rec=getRecommendation(c);
+    const p=PROVIDERS[c.id]||{prov:'?',fixo:0,var:0,excl:'?'};
+    const comp=COMPETITIVE[c.id]||{concTaxa:'?',barreira:'?',opp:'?'};
+    const crossTotal=c.loans+c.pixCC+c.ccrp;
+    const crossPct=c.newUsers>0?((crossTotal/c.newUsers)*100).toFixed(1):0;
+    const domChan=c.google>=c.organic?'Google':'Orgânico';
+    const domPct=c.newUsers>0?Math.round(Math.max(c.google,c.organic)/c.newUsers*100):0;
+    return `<tr class="city-row" data-dc="${c.dc>0?'pos':'neg'}" data-excl="${p.excl}" data-rec="${rec}">
+      <td data-val="${c.alias}"><strong>${c.alias}</strong></td>
+      <td data-val="${c.dc}" class="${dcClass(c.dc)}">${fmtBRL(c.dc)}</td>
+      <td data-val="${c.tpv}">${fmtBRL(c.tpv)}</td>
+      <td data-val="${c.tpvCC}">${fmtBRL(c.tpvCC)}</td>
+      <td><div class="bar-wrap"><div class="bar-bg"><div class="bar-fill ${c.shareCC<30?'low':c.shareCC<50?'mid':''}" style="width:${c.shareCC}%"></div></div><span style="font-size:10px;color:var(--muted2);">${c.shareCC}%</span></div></td>
+      <td data-val="${c.au}">${fmtNum(c.au)}</td>
+      <td data-val="${c.newUsers}">${fmtNum(c.newUsers)}</td>
+      <td data-val="${crossPct}" style="color:${crossPct<5?'var(--yellow)':'var(--accent)'}">${crossPct}%</td>
+      <td><span style="color:var(--muted2)">${p.prov}</span></td>
+      <td class="font-mono" style="color:var(--muted2)">${p.fixo>0?'R$'+p.fixo:'—'}</td>
+      <td class="font-mono" style="color:var(--muted2)">${p.var>0?'R$'+p.var.toFixed(2):' —'}</td>
+      <td><span class="badge ${p.excl==='Sim'?'badge-yellow':'badge-gray'}">${p.excl}</span></td>
+      <td style="font-size:11px">${comp.concTaxa}</td>
+      <td style="font-size:11px">${comp.barreira}</td>
+      <td>${scoreBadge(score)}</td>
+      <td>${recBadge(rec)}</td>
+      <td data-val="${c.prolabMonth}" class="dc-pos">${fmtBRL(c.prolabMonth)}</td>
+      <td data-val="${c.dcPlusSeg}" class="${dcClass(c.dcPlusSeg)}">${fmtBRL(c.dcPlusSeg)}</td>
+    </tr>`;
+  }).join('');
+  document.getElementById('cityCount').textContent=`${sorted.length} cidades`;
+}
+
+function filterCityTable(){
+  const q=(document.getElementById('searchCity').value||'').toLowerCase();
+  const dc=document.getElementById('filterDC').value;
+  const excl=document.getElementById('filterExcl').value;
+  const rec=(document.getElementById('filterRec').value||'').toLowerCase();
+  let count=0;
+  document.querySelectorAll('#cityBody tr').forEach(r=>{
+    const matchQ=!q||r.textContent.toLowerCase().includes(q);
+    const matchDC=!dc||(dc==='pos'&&r.dataset.dc==='pos')||(dc==='neg'&&r.dataset.dc==='neg');
+    const matchExcl=!excl||(excl==='sim'&&r.dataset.excl==='Sim')||(excl==='nao'&&r.dataset.excl==='Não');
+    const matchRec=!rec||r.dataset.rec.toLowerCase().includes(rec);
+    const show=matchQ&&matchDC&&matchExcl&&matchRec;
+    r.style.display=show?'':'none';
+    if(show)count++;
+  });
+  document.getElementById('cityCount').textContent=`${count} cidades`;
+}
+
+// ========== MATRIX ==========
+function buildMatrix(){
+  const quadrants=[
+    {id:'q1',cls:'q1',label:'⬆ ALTO POTENCIAL · BAIXO RISCO',color:'var(--accent)',action:'COBRAR TAXA / ATIVAR SEGURO'},
+    {id:'q2',cls:'q2',label:'⬆ ALTO POTENCIAL · ALTO RISCO',color:'var(--yellow)',action:'AVALIAR COM JURÍDICO'},
+    {id:'q3',cls:'q3',label:'⬇ BAIXO POTENCIAL · BAIXO RISCO',color:'var(--blue)',action:'MANTER / MONITORAR'},
+    {id:'q4',cls:'q4',label:'⬇ BAIXO POTENCIAL · ALTO RISCO',color:'var(--red)',action:'DESCONTINUAR'},
+  ];
+  const grid=document.getElementById('matrixGrid');
+  grid.innerHTML=quadrants.map(q=>`
+    <div class="quadrant ${q.cls}" id="${q.id}">
+      <div class="q-label" style="color:${q.color}">${q.label}<br><span style="font-size:9px;font-family:'DM Mono',monospace;opacity:.7">${q.action}</span></div>
+      <div id="${q.id}_items"></div>
+    </div>
+  `).join('');
+
+  CITIES.forEach(c=>{
+    const p=PROVIDERS[c.id]||{excl:"Não"};
+    const comp=COMPETITIVE[c.id]||{barreira:"🟢",concTaxa:"N/A"};
+    const hasBarreira=comp.barreira.includes('🔴');
+    const hasExcl=p.excl==='Sim';
+    const highRisk=hasBarreira||hasExcl;
+    const potential=Math.abs(c.prolabMonth)+(c.orders*(1.99)*0.8/100);
+    const highPot=potential>5000||c.au>5000;
+    
+    let qid;
+    if(highPot&&!highRisk)qid='q1';
+    else if(highPot&&highRisk)qid='q2';
+    else if(!highPot&&!highRisk)qid='q3';
+    else qid='q4';
+
+    const score=getScore(c);
+    const rec=getRecommendation(c);
+    const div=document.createElement('div');
+    div.className='city-chip';
+    div.innerHTML=`
+      <div class="city-chip-name">${c.alias} ${scoreBadge(score)}</div>
+      <div class="city-chip-metrics">
+        <span class="${dcClass(c.dc)}">${fmtBRL(c.dc)}/m</span>
+        <span>${fmtNum(c.au)} users</span>
+        <span style="color:var(--accent)">${fmtBRL(c.prolabMonth)}/m seg</span>
+      </div>
+      <div style="margin-top:4px;">${recBadge(rec)}</div>
+    `;
+    document.getElementById(qid+'_items').appendChild(div);
+  });
+}
+
+// ========== SCENARIOS ==========
+let simSeguro=true;
+function toggleSeguro(){
+  simSeguro=!simSeguro;
+  document.getElementById('toggleSeg').classList.toggle('on',simSeguro);
+  updateSim();
+}
+
+function updateSim(){
+  const taxa=parseFloat(document.getElementById('taxaSlider').value);
+  const churn=parseFloat(document.getElementById('churnSlider').value)/100;
+  document.getElementById('taxaVal').textContent='R$ '+taxa.toFixed(2).replace('.',',');
+  document.getElementById('churnVal').textContent=Math.round(churn*100)+'%';
+
+  // Summary
+  let totalTaxaRev=0,totalSeg=0,totalDCGain=0,positiveCities=0;
+  const sorted=[...CITIES].sort((a,b)=>a.dc-b.dc);
+  const rows=sorted.map(c=>{
+    const p=PROVIDERS[c.id]||{excl:"Não"};
+    const comp=COMPETITIVE[c.id]||{barreira:"🟢"};
+    const hasTaxaWindow=comp.janela&&comp.janela.includes('ABERTA');
+    const canTaxa=hasTaxaWindow&&p.excl!=='Sim'&&!comp.barreira.includes('🔴');
+    const taxaRev=canTaxa?c.orders*taxa*(1-churn):0;
+    const segRev=simSeguro?c.prolabMonth:0;
+    const newDC=c.dc+taxaRev+segRev;
+    totalTaxaRev+=taxaRev;
+    totalSeg+=segRev;
+    totalDCGain+=(taxaRev+segRev);
+    if(newDC>0&&c.dc<=0)positiveCities++;
+    
+    const risco=p.excl==='Sim'?'🔴 ALTO':comp.barreira.includes('🔴')?'🟡 MÉDIO':'🟢 BAIXO';
+    const statusBefore=c.dc>0?'positiva':'negativa';
+    const statusAfter=newDC>0?'✅ POSITIVA':'❌ NEGATIVA';
+    return {c,taxaRev,segRev,newDC,risco,statusAfter,canTaxa};
+  });
+
+  document.getElementById('simSummary').innerHTML=`
+    <div><div style="font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;">RECEITA TAXA/MÊS</div><div style="font-family:'Syne',sans-serif;font-size:18px;font-weight:700;color:var(--accent);">${fmtBRL(totalTaxaRev)}</div></div>
+    <div><div style="font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;">PROLAB SEGURO/MÊS</div><div style="font-family:'Syne',sans-serif;font-size:18px;font-weight:700;color:var(--blue);">${simSeguro?fmtBRL(totalSeg):'OFF'}</div></div>
+    <div><div style="font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;">GANHO TOTAL/MÊS</div><div style="font-family:'Syne',sans-serif;font-size:18px;font-weight:700;color:var(--accent);">${fmtBRL(totalDCGain)}</div></div>
+    <div><div style="font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;">CIDADES REVERTIDAS</div><div style="font-family:'Syne',sans-serif;font-size:18px;font-weight:700;color:var(--accent);">${positiveCities}</div></div>
+  `;
+
+  document.getElementById('scenBody').innerHTML=rows.map(({c,taxaRev,segRev,newDC,risco,statusAfter,canTaxa})=>{
+    const p=PROVIDERS[c.id]||{excl:"Não"};
+    return `<tr>
+      <td><strong>${c.alias}</strong></td>
+      <td class="${dcClass(c.dc)}">${fmtBRL(c.dc)}</td>
+      <td style="color:${canTaxa?'var(--accent)':'var(--muted)'}">${canTaxa?fmtBRL(taxaRev):'—'}</td>
+      <td style="color:${simSeguro?'var(--blue)':'var(--muted)'}">${simSeguro?fmtBRL(segRev):'—'}</td>
+      <td class="${dcClass(newDC)}" style="font-weight:700">${fmtBRL(newDC)}</td>
+      <td style="color:${(taxaRev+segRev)>0?'var(--accent)':'var(--muted2)'}">+${fmtBRL(taxaRev+segRev)}</td>
+      <td style="font-size:11px">${statusAfter}</td>
+      <td style="font-size:11px">${risco}</td>
+      <td><span class="badge ${p.excl==='Sim'?'badge-yellow':'badge-gray'}">${p.excl}</span></td>
+    </tr>`;
+  }).join('');
+}
+
+function buildPredefinedScenarios(){
+  const scenarios=[
+    {name:'Conservador',taxa:0.99,churn:0.10,color:'var(--blue)',desc:'R$0,99/recarga · 10% churn estimado. Cidades com janela aberta.'},
+    {name:'Moderado',taxa:1.99,churn:0.20,color:'var(--accent)',desc:'R$1,99/recarga · 20% churn. Equilibrio risco/retorno.'},
+    {name:'Agressivo',taxa:2.99,churn:0.35,color:'var(--yellow)',desc:'R$2,99/recarga · 35% churn. Apenas cidades onde concorrente já cobra R$3+.'},
+  ];
+  const janelaIds=CITIES.filter(c=>{
+    const comp=COMPETITIVE[c.id]||{};
+    const p=PROVIDERS[c.id]||{excl:"Não"};
+    return comp.janela&&comp.janela.includes('ABERTA')&&p.excl!=='Sim'&&!(comp.barreira||'').includes('🔴');
+  });
+
+  document.getElementById('predefinedScenarios').innerHTML=scenarios.map(s=>{
+    const rev=janelaIds.reduce((sum,c)=>sum+c.orders*s.taxa*(1-s.churn),0);
+    const segTotal=CITIES.reduce((sum,c)=>sum+c.prolabMonth,0);
+    return `<div class="scenario-card">
+      <div class="scenario-header">
+        <div class="scenario-name font-syne" style="color:${s.color}">${s.name}</div>
+        <span class="badge" style="background:rgba(255,255,255,.05);color:${s.color}">R$${s.taxa.toFixed(2).replace('.',',')} / recarga</span>
+      </div>
+      <div style="font-size:11px;color:var(--muted2);margin-bottom:12px;">${s.desc}</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;">
+        <div><div style="font-size:10px;color:var(--muted);margin-bottom:4px;font-family:'DM Mono',monospace;">RECEITA TAXA/MÊS</div><div class="font-syne" style="font-size:18px;font-weight:700;color:${s.color}">${fmtBRL(rev)}</div></div>
+        <div><div style="font-size:10px;color:var(--muted);margin-bottom:4px;font-family:'DM Mono',monospace;">+ SEGURO/MÊS</div><div class="font-syne" style="font-size:18px;font-weight:700;color:var(--blue)">${fmtBRL(segTotal)}</div></div>
+      </div>
+      <div style="font-size:11px;color:var(--muted2)">Cidades elegíveis: <strong style="color:${s.color}">${janelaIds.length}</strong> (Curitiba, Vitória, Sorocaba, Pelotas, Diadema, Ribeirão Preto, Taubaté)</div>
+      <div style="font-size:11px;color:var(--yellow);margin-top:6px;">Churn estimado: ${Math.round(s.churn*100)}% · Receita líquida: ${fmtBRL(rev*(1-s.churn*0.3))}</div>
+    </div>`;
+  }).join('');
+}
+
+// ========== COMPETITIVE ==========
+function buildCompetitive(){
+  const players=[
+    {name:'RecargaPay',icon:'💚',stat:'35 cidades',note:'Fee = R$0 em todas · Produto gratuito'},
+    {name:'PicPay',icon:'🔵',stat:'8 cidades ativas',note:'Cobra até 4,99% CC · Sem taxa só via saldo'},
+    {name:'Mercado Pago',icon:'🟡',stat:'São Paulo',note:'Credenciado SPTrans · Sem taxa'},
+    {name:'Apps Oficiais',icon:'🔴',stat:'15+ cidades',note:'Maioria gratuitos · Risco de churn alto'},
+  ];
+  document.getElementById('compCards').innerHTML=players.map(p=>`
+    <div class="kpi-card blue">
+      <div style="font-size:22px;margin-bottom:8px;">${p.icon}</div>
+      <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:14px;margin-bottom:4px;">${p.name}</div>
+      <div style="font-family:'DM Mono',monospace;font-size:11px;color:var(--accent);margin-bottom:6px;">${p.stat}</div>
+      <div style="font-size:11px;color:var(--muted2)">${p.note}</div>
+    </div>
+  `).join('');
+
+  const sorted=[...CITIES].sort((a,b)=>b.tpv-a.tpv);
+  document.getElementById('compBody').innerHTML=sorted.map(c=>{
+    const comp=COMPETITIVE[c.id]||{};
+    const oppColor=comp.opp&&comp.opp.includes('ALTA')?'var(--accent)':comp.opp&&comp.opp.includes('MÉDIA')?'var(--yellow)':'var(--muted)';
+    return `<tr class="comp-row">
+      <td><strong>${c.alias}</strong><br><span style="color:var(--muted);font-size:10px;">${fmtNum(c.au)} users · ${fmtBRL(c.tpv)}</span></td>
+      <td style="font-size:11px">${comp.appOficial||'—'}</td>
+      <td style="font-size:11px">${comp.picpay||'—'}</td>
+      <td style="font-size:11px">${comp.mercadopago||'—'}</td>
+      <td style="font-size:11px;font-weight:600">${comp.concTaxa||'—'}</td>
+      <td style="font-size:11px">${comp.barreira||'—'}</td>
+      <td style="font-size:11px;font-weight:600">${comp.janela||'—'}</td>
+      <td><span class="badge ${comp.unico?'badge-green':'badge-gray'}">${comp.unico?'Sim':'Não'}</span></td>
+      <td style="color:${oppColor};font-size:11px;font-weight:600">${comp.opp||'—'}</td>
+    </tr>`;
+  }).join('');
+}
+
+function filterCompTable(){
+  const q=(document.getElementById('searchComp').value||'').toLowerCase();
+  document.querySelectorAll('#compBody tr').forEach(r=>{
+    r.style.display=(!q||r.textContent.toLowerCase().includes(q))?'':'none';
+  });
+}
+
+// ========== LTV TABLE ==========
+function buildLTV(){
+  const sorted=[...CITIES].sort((a,b)=>b.prolabYear-a.prolabYear);
+  document.getElementById('ltvBody').innerHTML=sorted.map(c=>{
+    const crossTotal=c.loans+c.pixCC+c.ccrp;
+    const crossPct=c.newUsers>0?((crossTotal/c.newUsers)*100).toFixed(1):0;
+    const ltv=c.au>0?(c.dc/c.au)*12:0;
+    const ltvSeg=ltv+c.prolabYear/Math.max(c.au,1);
+    const domChan=c.google>c.organic?`Google (${Math.round(c.google/Math.max(c.newUsers,1)*100)}%)`:
+                  c.organic>0?`Orgânico (${Math.round(c.organic/Math.max(c.newUsers,1)*100)}%)`:'—';
+    const crossPot=crossPct>5?'<span class="badge badge-green">ALTO</span>':crossPct>2?'<span class="badge badge-yellow">MÉDIO</span>':'<span class="badge badge-red">BAIXO</span>';
+    const tier=c.au>20000?'<span class="badge badge-a">Tier 1</span>':c.au>5000?'<span class="badge badge-b">Tier 2</span>':c.au>1000?'<span class="badge badge-c">Tier 3</span>':'<span class="badge badge-d">Tier 4</span>';
+    return `<tr>
+      <td><strong>${c.alias}</strong></td>
+      <td data-val="${c.newUsers}">${fmtNum(c.newUsers)}</td>
+      <td data-val="${c.loans}">${c.loans}</td>
+      <td data-val="${c.pixCC}">${c.pixCC}</td>
+      <td data-val="${c.ccrp}">${c.ccrp}</td>
+      <td data-val="${crossPct}" style="color:${crossPct<5?'var(--yellow)':'var(--accent)'};font-weight:600">${crossPct}%</td>
+      <td style="font-size:11px;color:var(--muted2)">${domChan}</td>
+      <td data-val="${ltv}" class="${dcClass(ltv)}">${fmtBRL(ltv)}</td>
+      <td data-val="${c.prolabYear}" class="dc-pos">${fmtBRL(c.prolabYear)}</td>
+      <td data-val="${ltvSeg}" class="${dcClass(ltvSeg)}">${fmtBRL(ltvSeg)}</td>
+      <td>${crossPot}</td>
+      <td>${tier}</td>
+    </tr>`;
+  }).join('');
+
+  // Cross opportunity panel
+  const lowCross=CITIES.filter(c=>c.newUsers>100&&(c.loans+c.pixCC+c.ccrp)/c.newUsers<0.05).sort((a,b)=>b.au-a.au);
+  document.getElementById('crossOpportunity').innerHTML=lowCross.slice(0,8).map(c=>{
+    const pct=((c.loans+c.pixCC+c.ccrp)/c.newUsers*100).toFixed(1);
+    const pot=(0.05-pct/100)*c.newUsers;
+    return `<div class="insight warn">
+      <div class="insight-title">${c.alias} — Cross-sell: ${pct}%</div>
+      <div class="insight-body">${fmtNum(c.au)} usuários ativos · ${fmtNum(c.newUsers)} novos/mês · Potencial incremental: ~${Math.round(pot)} conversões/mês para atingir 5%</div>
+    </div>`;
+  }).join('');
+}
+
+// ========== CHARTS ==========
+function drawDCChart(){
+  const canvas=document.getElementById('dcChart');
+  const ctx=canvas.getContext('2d');
+  canvas.width=canvas.offsetWidth||340;
+  canvas.height=160;
+  const W=canvas.width,H=canvas.height;
+  const pad={t:10,r:10,b:30,l:55};
+  const cW=W-pad.l-pad.r,cH=H-pad.t-pad.b;
+  const max=Math.max(...PNL_DC.map(Math.abs));
+  const minV=-max*1.1,maxV=max*0.1;
+  const scaleY=v=>(v-maxV)/(minV-maxV)*cH+pad.t;
+  const scaleX=i=>pad.l+i/(PNL_DC.length-1)*cW;
+
+  ctx.clearRect(0,0,W,H);
+  ctx.strokeStyle='rgba(30,39,64,.4)';
+  ctx.lineWidth=1;
+  const zero=scaleY(0);
+  ctx.beginPath();ctx.moveTo(pad.l,zero);ctx.lineTo(pad.l+cW,zero);ctx.stroke();
+
+  // Area fill
+  const grad=ctx.createLinearGradient(0,pad.t,0,H-pad.b);
+  grad.addColorStop(0,'rgba(239,68,68,.3)');
+  grad.addColorStop(1,'rgba(239,68,68,.02)');
+  ctx.fillStyle=grad;
+  ctx.beginPath();
+  ctx.moveTo(scaleX(0),zero);
+  PNL_DC.forEach((v,i)=>ctx.lineTo(scaleX(i),scaleY(v)));
+  ctx.lineTo(scaleX(PNL_DC.length-1),zero);
+  ctx.closePath();ctx.fill();
+
+  // Line
+  ctx.strokeStyle='#ef4444';ctx.lineWidth=2;ctx.lineJoin='round';
+  ctx.beginPath();
+  PNL_DC.forEach((v,i)=>i?ctx.lineTo(scaleX(i),scaleY(v)):ctx.moveTo(scaleX(0),scaleY(v)));
+  ctx.stroke();
+
+  // Points + labels
+  PNL_DC.forEach((v,i)=>{
+    ctx.fillStyle='#ef4444';
+    ctx.beginPath();ctx.arc(scaleX(i),scaleY(v),3,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='rgba(255,255,255,.5)';ctx.font='9px DM Mono,monospace';ctx.textAlign='center';
+    ctx.fillText(PNL_LABELS[i],scaleX(i),H-pad.b+14);
+  });
+
+  // Y labels
+  ctx.fillStyle='var(--muted)';ctx.font='9px DM Mono,monospace';ctx.textAlign='right';
+  [-600000,-400000,-200000,0].forEach(v=>{
+    const y=scaleY(v);
+    ctx.fillStyle='rgba(100,116,139,.5)';ctx.font='9px DM Mono,monospace';
+    ctx.fillText((v/1000).toFixed(0)+'K',pad.l-4,y+3);
+  });
+}
+
+function drawHealthDonut(){
+  const counts={A:0,B:0,C:0,D:0};
+  CITIES.forEach(c=>counts[getScore(c)]++);
+  const canvas=document.getElementById('healthDonut');
+  const ctx=canvas.getContext('2d');
+  canvas.width=200;canvas.height=180;
+  const cx=100,cy=90,r=70,inner=45;
+  const colors={A:'#00e5a0',B:'#3b82f6',C:'#f59e0b',D:'#ef4444'};
+  let start=-Math.PI/2;
+  const total=CITIES.length;
+  Object.entries(counts).forEach(([k,v])=>{
+    const sweep=(v/total)*Math.PI*2;
+    ctx.beginPath();ctx.moveTo(cx,cy);
+    ctx.arc(cx,cy,r,start,start+sweep);
+    ctx.closePath();ctx.fillStyle=colors[k];ctx.fill();
+    start+=sweep;
+  });
+  ctx.beginPath();ctx.arc(cx,cy,inner,0,Math.PI*2);ctx.fillStyle='#111520';ctx.fill();
+  ctx.fillStyle='#e2e8f0';ctx.font='bold 18px Syne,sans-serif';ctx.textAlign='center';
+  ctx.fillText(total,cx,cy+5);
+  ctx.fillStyle='#64748b';ctx.font='9px DM Mono,monospace';
+  ctx.fillText('CIDADES',cx,cy+18);
+}
+
+// ========== ALERTS ==========
+function buildAlerts(){
+  const alerts=[
+    {type:'danger',title:'Vertical nunca lucrativa (Jul/25–Mar/26)',body:'DC negativo em todos os 9 meses analisados. Perda acumulada de R$2,2M. Fee = R$0 em 100% das transações.'},
+    {type:'warn',title:'Curitiba e Recife: piora retomada em Mar/26',body:'Tendência de melhora de Jul→Dez/25 revertida. Curitiba: –R$37K (pior desde Jul/25). Recife: –R$35K. Ambas sem exclusividade contratual.'},
+    {type:'',title:'Cross-sell < 5% em todas as 35 cidades',body:'Taxa média de 2,4%. Potencial sistêmico inexplorado. Manaus lidera com 3,6% — ainda abaixo da meta.'},
+    {type:'info',title:'Seguro reverte 5 cidades para lucratividade',body:'São Luís, Aracaju, Campinas, Blumenau e Salvador passam a DC positivo apenas com pro-labore do seguro (R$1,63/assinante/mês).'},
+    {type:'warn',title:'Processing/MDR: R$494K/mês (+principal driver de custo)',body:'Custo crescente 9 meses seguidos. Com TPV CC crescendo +23%, o MDR acompanha. Cashback foi resolvido em Set/25.'},
+    {type:'',title:'Janela de taxa aberta em 7 cidades',body:'Curitiba (Cliqx R$3–R$10), Vitória, Sorocaba, Pelotas, Diadema, Ribeirão Preto e Taubaté (PicPay cobra taxa). RecargaPay pode cobrar abaixo e ainda ser mais barato.'},
+  ];
+  document.getElementById('alertsPanel').innerHTML=alerts.map(a=>`
+    <div class="insight ${a.type}">
+      <div class="insight-title">${a.title}</div>
+      <div class="insight-body">${a.body}</div>
+    </div>
+  `).join('');
+}
+
+// ========== INIT ==========
+window.addEventListener('load',()=>{
+  buildOverview();
+  buildCityTable();
+  buildMatrix();
+  buildPredefinedScenarios();
+  updateSim();
+  buildCompetitive();
+  buildLTV();
+  buildAlerts();
+  setTimeout(()=>{
+    drawDCChart();
+    drawHealthDonut();
+  },100);
+});
+window.addEventListener('resize',()=>{
+  drawDCChart();
+  drawHealthDonut();
+});
+</script>
+</body>
+</html>
